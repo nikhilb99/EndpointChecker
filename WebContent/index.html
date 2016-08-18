@@ -1,0 +1,145 @@
+<!-- By: Nikhil Bharani, Summer 2016 -->
+<html>
+	
+	<head>
+		<title>Check Server Status</title>
+		<link rel="stylesheet" type="text/css" href="theme.css">
+
+	</head>
+
+	<body>
+		
+		<!--Refresh every 5 min-->
+		<meta http-equiv="refresh" content="300"/>
+		
+		<br>
+		
+		<div id="info" >
+            <h1><span id="endpt">Endpoint Checker</span></h1>
+            <hr>
+            
+            <!--Refresh button-->
+			<br><a href="javascript:location.reload(true)"><button class="refresh">Refresh Page</button></a><br>
+			
+			<center><br><div id="display"></div></center>
+			
+			<br><strong><div id="replace">Getting Server Statuses...</div></strong><br>
+		
+		</div> 
+        
+        <!-- Extra information regarding the program overall. Push the button and information pops up using jQuery-->
+        <div id="extra" style="display:none;" class="answer_list" >
+            <ul>
+                <li>If you see two outputs of the same URL/name, then the second one is the most current status (if it had changed).</li>
+                <li>The webpage refreshes every 5 minutes automatically; otherwise press the refresh button.</li>
+                <li>Servers that timeout or are offline are automatically moved to the end of the list of outputs.</li>
+            	<li>Each name is linked to its corresponding website link.</li>
+            </ul>
+        </div>
+        <br><center><input id="extraButton" type="button" name="answer" value="Additional Information"/></center>
+
+		
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+        <script>
+    		
+            //extra information jquery animation
+            $('#extraButton').click(function() {
+                $('#extra').toggle('slow', function() {
+                });
+            })
+
+    		//Array that stores the server statuses
+    		var statuses = [];
+            var check = [];
+
+    		function links(arr) {
+   				
+   				//Iterates through given input and outputs the name and URL
+   				var print = "";
+   				var stat = "";
+   				var name;
+    			var j;
+    			
+    			//Iterates through given input and determines status of website
+    			for(j = 0; j<arr.length; j++) {
+    				
+    				(function(j){
+    					
+    					var reqTimeout = setTimeout(function(){
+    						stat="SERVER TIMEOUT"; 
+    						name = arr[j].display;
+                            arr[j].status = stat;
+    						getStatuses(name,stat,arr[j].url);
+                            //alert(arr[j].display + " has timed out/is offline!");
+    					}, 2500
+    					);           
+                        
+						var xhr = $.ajax({
+  							type: "GET",
+  							url: arr[j].url,
+  							dataType: "script",
+  							success: function() {
+    							stat="SERVER ONLINE"; 
+    							name = arr[j].display;
+                                arr[j].status = stat;
+    							getStatuses(name,stat,arr[j].url);
+  							},
+  							error: function() {
+    							stat="SERVER OFFLINE"; 
+    							name = arr[j].display;
+                                arr[j].status = stat;
+    							getStatuses(name,stat,arr[j].url);   
+                                alert(arr[j].display + " is offline!");
+  							},
+  							complete: function() {
+    							clearTimeout(reqTimeout);
+    							p="";
+    							s="";
+  							}
+						});		    			
+    				})(j);
+                }
+			}
+			
+			//Determines color of status (red=offline/timeout, green=online) and creates new divs for outputting them
+			function getStatuses(name, stat, link){
+				
+					if(stat==="SERVER TIMEOUT" || stat==="SERVER OFFLINE"){
+                        statuses.push(["<strong>" +("<a href='" + link + "'>" + name + "</a>")  + ": </strong>",("<a href='" + link + "'>" + link + "</a>"),('<strong><span style="color:red;">' + stat + '</span></strong>')]);
+					}
+					else if(stat==="SERVER ONLINE"){
+                        statuses.push(["<strong>" + ("<a href='" + link + "'>" + name + "</a>")  + ": </strong>",("<a href='" + link + "'>" + link + "</a>"),('<strong><span style="color:green;">' + stat + '</span></strong>')]);
+					}
+                
+                    var newDiv = document.getElementById('replace');
+                    newDiv.className = 'block';
+                    document.getElementById('display').appendChild(newDiv);
+
+                    newDiv.innerHTML = "";
+                    for(var i = 0; i<statuses.length; i++){
+                        
+                      var i1 = document.createElement('div')
+                      i1.className = 'block-2';
+                      i1.innerHTML = statuses[i][0] + statuses[i][2];
+                      newDiv.appendChild(i1);
+                      
+                     /* var i3 = document.createElement('div')
+                      i3.className = 'block-s';
+                      i3.innerHTML = statuses[i][2];
+                      newDiv.appendChild(i3);*/
+                      
+                      var i2 = document.createElement('div')
+                      i2.className = 'block-u';
+                      i2.innerHTML = statuses[i][1];
+                      newDiv.appendChild(i2);
+                    
+                    }     
+            }	
+
+	    </script>
+	    
+	    <script src="links.js"></script>
+	
+	</body>
+
+</html>
